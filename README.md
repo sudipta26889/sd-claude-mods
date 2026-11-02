@@ -41,6 +41,8 @@ It detects:
 
 **False positive?** Start the prompt with `allow-secret:`. The prefix is removed and the prompt is sent, and it is then stored like any other prompt, in your local history and transcript.
 
+If the guard itself fails, the prompt is sent unchecked and a warning says so, because a broken guard must not block every prompt. The warning never contains prompt text. A detected secret is still stopped.
+
 ### What it does not cover
 
 - **`!` bash mode and local slash commands such as `/rename`.** These do not raise `prompt.submit`, so a secret typed there is not stopped.
@@ -52,6 +54,8 @@ It detects:
 - **What is already on disk.** The guard does not clean up earlier prompts or transcripts.
 
 ## Develop
+
+`plugins/secret-guard` is a stable path: another repository pins it, so do not rename or move it.
 
 No version numbers: plugin manifests and marketplace entries omit `version`, so installs track commits. Entry and manifest names must match. Per-computer values go in `userConfig`, never in the repository.
 

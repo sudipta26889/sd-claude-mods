@@ -88,3 +88,64 @@ test('a peer session message is not dropped', async ($, on) => {
 
   expect(entered).toEqual([SECRET])
 })
+
+// Not a string, so the guard throws when it reads it, whatever its checks are.
+const unreadable = () =>
+  ({ text: { secret: SECRET }, wait: false, origin: { kind: 'composer' } }) as never
+
+test('a guard failure sends the prompt and warns, with no prompt text', async ($, on) => {
+  const warnings: string[] = []
+  let sent = 0
+  on('ui.toast', (_, e) => {
+    warnings.push(e.text)
+
+    return { value: undefined }
+  })
+  on('prompt.submit', () => {
+    sent += 1
+
+    return { text: 'sent' }
+  })
+  const result = await $.prompt.submit(unreadable())
+
+  expect(sent).toBe(1)
+  expect(result.drop).toBeUndefined()
+  // Exact, so nothing from the prompt or the error can be added to it.
+  expect(warnings).toEqual([
+    'secret-guard failed, so this prompt was sent but not checked for secrets.',
+  ])
+})
+
+test('a warning that fails still sends the prompt', async ($, on) => {
+  let sent = 0
+  on('ui.toast', () => {
+    throw new Error('no toast here')
+  })
+  on('prompt.submit', () => {
+    sent += 1
+
+    return { text: 'sent' }
+  })
+  const result = await $.prompt.submit(unreadable())
+
+  expect(sent).toBe(1)
+  expect(result.drop).toBeUndefined()
+})
+
+test('a failure after the prompt was passed on does not send it twice or warn', async ($, on) => {
+  const warnings: string[] = []
+  let sent = 0
+  on('ui.toast', (_, e) => {
+    warnings.push(e.text)
+
+    return { value: undefined }
+  })
+  on('prompt.submit', () => {
+    sent += 1
+    throw new Error('beneath failed')
+  })
+  await $.prompt.submit(typed('a clean prompt')).catch(() => undefined)
+
+  expect(sent).toBe(1)
+  expect(warnings).toEqual([])
+})
