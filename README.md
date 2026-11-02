@@ -66,3 +66,7 @@ scripts/bootstrap.test.sh                    # bootstrap, against a stub claude
 Loading a mod lays its types in `.claude-plugin/types/`, ignored by git. After that, `tsc -p plugins/secret-guard` type-checks it.
 
 Test secrets are fakes split by string concatenation, so the repository's secret scan stays clean. Never use real credentials.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
