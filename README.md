@@ -2,6 +2,62 @@
 
 Personal Claude Code mods, installable on any computer with one command. Mods install per computer, not per Claude account.
 
+## Not part of develop-like-sudipta
+
+sd-claude-mods and develop-like-sudipta are two separate things. You install each one on its own.
+
+| | sd-claude-mods | develop-like-sudipta |
+| --- | --- | --- |
+| What it is | Mods that change how Claude Code behaves | A plugin for development discipline |
+| Repo | [sudipta26889/sd-claude-mods](https://github.com/sudipta26889/sd-claude-mods) | [sudipta26889/claude-plugin-develop-like-sudipta](https://github.com/sudipta26889/claude-plugin-develop-like-sudipta) |
+| Install | The `curl` line under [Install](#install) | `claude plugin marketplace add sudipta26889/claude-plugin-develop-like-sudipta`, then `claude plugin install develop-like-sudipta@claude-plugin-develop-like-sudipta` |
+| What it changes | Stops prompts that look like they contain a secret | Adds slash commands, skills, agents and hooks |
+
+- Installing or updating develop-like-sudipta does not install these mods.
+- Installing these mods does not change that plugin.
+- Neither depends on the other.
+
+Mods install per computer, not per Claude account, so each computer needs the install once. If you switch Claude account on a computer, the mods should keep working. That has not been tested.
+
+### Check, update and remove
+
+**See what is installed:** run `claude plugin list`. In a session, `/plugin` also shows a line such as `1 mod active · secret-guard`.
+
+**Update:** this happens by itself after [Install](#install). To update by hand, run both lines, then restart Claude Code. Updating `sd-core` does not update `secret-guard`.
+
+```bash
+claude plugin update sd-core@sd-claude-mods
+claude plugin update secret-guard@sd-claude-mods
+```
+
+**Remove everything:** this removes both plugins and the marketplace.
+
+```bash
+claude plugin marketplace remove sd-claude-mods
+```
+
+**Remove the plugins and keep the marketplace:**
+
+```bash
+claude plugin uninstall sd-core@sd-claude-mods --prune -y
+```
+
+Uninstalling `sd-core` without `--prune` leaves `secret-guard` installed and still stopping prompts. `claude plugin prune` then removes it.
+
+**Turn off `secret-guard` only:** `claude plugin disable secret-guard@sd-claude-mods` is refused while `sd-core` is enabled. Disable `sd-core` first, then `secret-guard`. Enabling `sd-core` turns `secret-guard` back on.
+
+### Where mods run
+
+| Where you run Claude Code | Do mods run? |
+| --- | --- |
+| Terminal, including an editor's terminal and the JetBrains plugin | Yes |
+| Desktop app Code tab and the VS Code extension | Yes |
+| Remote Control | Yes, in the session on your computer |
+| `claude -p` and the Agent SDK | Hooks run, but nothing is drawn |
+| WSL session in the Desktop app | No |
+| Cloud session | Not from this install, which stays on your computer |
+| Cowork | Not in the docs' list, so do not rely on it |
+
 ## Install
 
 Needs `git` and Claude Code v2.1.287 or newer. The repository is public, so no GitHub login is needed.
@@ -20,7 +76,7 @@ Run it again at any time: each step checks before it changes anything.
 
 | Plugin | What it does |
 | --- | --- |
-| `sd-core` | The bundle every computer gets. Holds no code, only `dependencies`. |
+| `sd-core` | The set of mods every computer gets. Holds no code, only `dependencies`. |
 | `secret-guard` | Stops a prompt that looks like it contains a secret. |
 
 Optional mods stay out of `sd-core`, because Claude Code refuses to disable a plugin that an enabled plugin depends on. Install those by name: `claude plugin install <mod>@sd-claude-mods`.
