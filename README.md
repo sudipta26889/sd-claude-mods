@@ -8,10 +8,10 @@ sd-claude-mods and develop-like-sudipta are two separate things. You install eac
 
 | | sd-claude-mods | develop-like-sudipta |
 | --- | --- | --- |
-| What it is | Mods that change how Claude Code behaves | A plugin of engineering skills, agents, commands and hooks |
+| What it is | Mods that change how Claude Code behaves | A plugin for development discipline |
 | Repo | [sudipta26889/sd-claude-mods](https://github.com/sudipta26889/sd-claude-mods) | [sudipta26889/claude-plugin-develop-like-sudipta](https://github.com/sudipta26889/claude-plugin-develop-like-sudipta) |
-| Install | The `curl` line under [Install](#install) | `/plugin marketplace add sudipta26889/claude-plugin-develop-like-sudipta`, then `/plugin install develop-like-sudipta` |
-| What it changes | Stops prompts that look like they contain a secret | How Claude approaches development work |
+| Install | The `curl` line under [Install](#install) | `claude plugin marketplace add sudipta26889/claude-plugin-develop-like-sudipta`, then `claude plugin install develop-like-sudipta@claude-plugin-develop-like-sudipta` |
+| What it changes | Stops prompts that look like they contain a secret | Adds slash commands, skills, agents and hooks |
 
 - Installing or updating develop-like-sudipta does not install these mods.
 - Installing these mods does not change that plugin.
