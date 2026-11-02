@@ -14,7 +14,7 @@ Run it again at any time: each step checks before it changes anything.
 
 **No GitHub SSH key?** Installs from `/plugin` and plugin updates need `CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1`, because they do not fall back to HTTPS on their own. `bootstrap.sh` adds it to the `env` block of `settings.json` when it finds no working key.
 
-**Auto-update is unverified.** `marketplace.json` has no field for it, so `bootstrap.sh` sets `"autoUpdate": true` on this marketplace under `extraKnownMarketplaces` in your user `settings.json`. Claude Code reads the setting, but an update arriving this way has not yet been seen working. Confirm it under `/plugin`, Marketplaces, `sd-claude-mods`: the row reads Disable auto-update when it is on. `DISABLE_UPDATES`, `DISABLE_AUTOUPDATER` and `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` turn plugin auto-update off.
+**Auto-update** is on after `bootstrap.sh`. `marketplace.json` has no field for it, so the script sets `"autoUpdate": true` on this marketplace under `extraKnownMarketplaces` in your user `settings.json`. Merged changes arrive in the background within about ten minutes of your first message in a session, and load after `/reload-plugins` or at your next launch. To confirm it is on, open `/plugin`, Marketplaces, `sd-claude-mods`: the row reads Disable auto-update. `DISABLE_UPDATES`, `DISABLE_AUTOUPDATER` and `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` turn plugin auto-update off.
 
 ## Mods
 

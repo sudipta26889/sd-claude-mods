@@ -88,7 +88,7 @@ fi
 
 claude plugin list
 if [ "$auto_update" = 1 ]; then
-  echo "Done. Auto-update was set in settings.json, but an update arriving this way is unverified: confirm the setting under /plugin, Marketplaces."
+  echo "Done. Auto-update was set in settings.json: confirm it under /plugin, Marketplaces."
 else
   echo "Done, except auto-update. $manual"
   if [ "$ssh_works" != 1 ]; then
