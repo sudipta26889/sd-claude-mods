@@ -1,0 +1,68 @@
+# sd-claude-mods
+
+Personal Claude Code mods, installable on any computer with one command. Mods install per computer, not per Claude account.
+
+## Install
+
+Needs `git` and Claude Code v2.1.287 or newer. The repository is public, so no GitHub login is needed.
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/sudipta26889/sd-claude-mods/main/scripts/bootstrap.sh | bash
+```
+
+Run it again at any time: each step checks before it changes anything.
+
+**No GitHub SSH key?** Installs from `/plugin` and plugin updates need `CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1`, because they do not fall back to HTTPS on their own. `bootstrap.sh` adds it to the `env` block of `settings.json` when it finds no working key.
+
+**Auto-update is unverified.** `marketplace.json` has no field for it, and the docs describe only the `/plugin` screen and managed settings. `bootstrap.sh` sets `"autoUpdate": true` on this marketplace under `extraKnownMarketplaces` in your user `settings.json`, which is not a documented route. Confirm it under `/plugin`, Marketplaces. If it is off, select Enable auto-update there.
+
+## Mods
+
+| Plugin | What it does |
+| --- | --- |
+| `sd-core` | The bundle every computer gets. Holds no code, only `dependencies`. |
+| `secret-guard` | Stops a prompt that looks like it contains a secret. |
+
+Optional mods stay out of `sd-core`, because Claude Code refuses to disable a plugin that an enabled plugin depends on. Install those by name: `claude plugin install <mod>@sd-claude-mods`.
+
+## secret-guard
+
+When you submit a prompt that looks like it contains a secret, the prompt is stopped before it is sent. The message names the type of secret that matched, never its value. Your text goes back in the prompt box to edit.
+
+It detects:
+
+- `sk-` style API keys
+- Slack `xox?-` tokens
+- Google `GOCSPX-` client secrets
+- GitHub tokens (`gh?_` and `github_pat_`)
+- URLs with an embedded password, such as `postgres://user:<password>@host`
+- Portainer webhook URLs
+- `client_secret` in JSON
+
+**False positive?** Start the prompt with `allow-secret:`. The prefix is removed and the prompt is sent, and it is then stored like any other prompt, in your local history and transcript.
+
+### What it does not cover
+
+- **`!` bash mode and local slash commands such as `/rename`.** These do not raise `prompt.submit`, so a secret typed there is not stopped.
+- **Slash commands that do raise it.** They can be stopped, but `allow-secret:` cannot be used, because a prefix would stop the line being a command.
+- **Images and other attachments.** Only text is scanned.
+- **`@file` mentions.** The file's contents are not scanned.
+- **Messages from other sessions, schedules, background tasks and plugins.** These are let through, because dropping them would lose the message with nobody there to resend it.
+- **Secrets in any other format.** Detection is a fixed pattern list.
+- **What is already on disk.** The guard does not clean up earlier prompts or transcripts.
+
+## Develop
+
+No version numbers: plugin manifests and marketplace entries omit `version`, so installs track commits. Entry and manifest names must match. Per-computer values go in `userConfig`, never in the repository.
+
+```bash
+claude --plugin-dir plugins/secret-guard     # run a mod from its folder
+claude plugin validate .                     # the marketplace
+claude plugin validate plugins/secret-guard  # a mod
+claude plugin test plugins/secret-guard      # a mod's tests
+scripts/bootstrap.test.sh                    # bootstrap, against a stub claude
+```
+
+Loading a mod lays its types in `.claude-plugin/types/`, ignored by git. After that, `tsc -p plugins/secret-guard` type-checks it.
+
+Test secrets are fakes split by string concatenation, so the repository's secret scan stays clean. Never use real credentials.

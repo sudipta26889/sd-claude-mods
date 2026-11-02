@@ -1,0 +1,42 @@
+name: check
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # the secret scan reads the full history
+
+      - name: Scan for secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Claude Code
+        run: |
+          curl -fsSL https://claude.ai/install.sh | bash
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Validate
+        run: |
+          claude plugin validate .
+          for plugin in plugins/*/; do claude plugin validate "$plugin"; done
+
+      - name: Test mods
+        run: |
+          for plugin in plugins/*/; do
+            if find "$plugin" -name '*.test.ts' -o -name '*.test.tsx' | grep -q .; then
+              claude plugin test "$plugin"
+            fi
+          done
+
+      - name: Test bootstrap
+        run: scripts/bootstrap.test.sh

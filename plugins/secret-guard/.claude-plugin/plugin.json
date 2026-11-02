@@ -1,0 +1,4 @@
+{
+  "name": "secret-guard",
+  "description": "Stops a prompt that looks like it contains a secret, before it is sent."
+}

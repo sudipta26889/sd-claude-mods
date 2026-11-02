@@ -1,0 +1,16 @@
+{
+  "name": "sd-claude-mods",
+  "owner": { "name": "sudipta26889" },
+  "plugins": [
+    {
+      "name": "sd-core",
+      "source": "./plugins/sd-core",
+      "description": "The mods every computer gets. Installs its dependencies."
+    },
+    {
+      "name": "secret-guard",
+      "source": "./plugins/secret-guard",
+      "description": "Stops a prompt that looks like it contains a secret, before it is sent."
+    }
+  ]
+}

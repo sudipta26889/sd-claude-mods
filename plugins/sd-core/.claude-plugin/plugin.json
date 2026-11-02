@@ -1,0 +1,4 @@
+{
+  "name": "sd-core",
+  "dependencies": ["secret-guard"]
+}
