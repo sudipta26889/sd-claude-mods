@@ -23,7 +23,7 @@ Mods install per computer, not per Claude account, so each computer needs the in
 
 **See what is installed:** run `claude plugin list`. In a session, `/plugin` also shows a line such as `3 mods active · secret-guard, usage-meter, agent-radar`.
 
-**Update:** this happens by itself after [Install](#install). To update by hand, run these lines, then restart Claude Code. Updating `sd-core` does not update its dependencies, and it does not install a dependency that is new: `claude plugin install` does that.
+**Update:** this happens by itself after [Install](#install). To update by hand, run these lines, then restart Claude Code. Updating `sd-core` does not update its dependencies.
 
 ```bash
 claude plugin marketplace update sd-claude-mods
@@ -31,8 +31,9 @@ claude plugin update sd-core@sd-claude-mods
 claude plugin update secret-guard@sd-claude-mods
 claude plugin update usage-meter@sd-claude-mods
 claude plugin update agent-radar@sd-claude-mods
-claude plugin install sd-core@sd-claude-mods
 ```
+
+**When `sd-core` gains a mod:** neither auto-update, those lines, a restart nor `bootstrap.sh` installs it. `sd-core` shows `failed to load` until you run `/reload-plugins`, or `claude plugin install sd-core@sd-claude-mods`, once for each missing mod. `secret-guard` keeps working in the meantime.
 
 **Remove everything:** this removes every plugin from here and the marketplace.
 
@@ -72,7 +73,7 @@ curl -fsSL https://raw.githubusercontent.com/sudipta26889/sd-claude-mods/main/sc
 
 Run it again at any time: each step checks before it changes anything.
 
-**If a third-party mod can't be fetched:** `sd-core` needs `usage-meter` and `agent-radar`, which come from another repository. If that fetch fails on a new computer, the install stops and `secret-guard` does not run, even though `claude plugin list` shows it as enabled. Run `claude plugin install secret-guard@sd-claude-mods` to turn it on, then `claude plugin install sd-core@sd-claude-mods` once the fetch works. A computer that already has `secret-guard` keeps it.
+**If a third-party mod can't be fetched:** `sd-core` needs `usage-meter` and `agent-radar`, which come from another repository. If that fetch fails on a new computer, the install stops and `secret-guard` does not run, even though `claude plugin list` shows it as enabled. Run `claude plugin install secret-guard@sd-claude-mods` to turn it on, then run `claude plugin install sd-core@sd-claude-mods` once for each missing mod when the fetch works. A computer that already has `secret-guard` keeps it.
 
 **No GitHub SSH key?** Installs from `/plugin` and plugin updates need `CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1`, because they do not fall back to HTTPS on their own. `bootstrap.sh` adds it to the `env` block of `settings.json` when it finds no working key.
 
