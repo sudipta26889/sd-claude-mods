@@ -55,6 +55,8 @@ It detects:
 
 No version numbers: plugin manifests and marketplace entries omit `version`, so installs track commits. Entry and manifest names must match. Per-computer values go in `userConfig`, never in the repository.
 
+`main` is protected: every change goes through a pull request that passes the `check` job. Installed computers track `main`, so merging is releasing.
+
 ```bash
 claude --plugin-dir plugins/secret-guard     # run a mod from its folder
 claude plugin validate .                     # the marketplace
