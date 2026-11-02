@@ -1,4 +1,4 @@
 {
   "name": "sd-core",
-  "dependencies": ["secret-guard", "usage-meter", "agent-radar"]
+  "dependencies": ["secret-guard"]
 }

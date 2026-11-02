@@ -7,7 +7,7 @@
     {
       "name": "sd-core",
       "source": "./plugins/sd-core",
-      "description": "The mods every computer gets. Installs its dependencies."
+      "description": "Holds no code. Installs secret-guard, the one mod every computer must have."
     },
     {
       "name": "secret-guard",

@@ -43,6 +43,19 @@ if [[ "$installed" != *"\"sd-core@$MARKETPLACE\""* ]]; then
   claude plugin install "sd-core@$MARKETPLACE"
 fi
 
+# Third-party mods come from other repositories, and that fetch can fail. They are
+# not sd-core dependencies, so a failure here cannot turn secret-guard off. A mod
+# that is already installed is left alone, even if it was disabled on purpose.
+# blast-radius stays opt-in: under claude -p a risky command waits, which stalls bots.
+failed=""
+for mod in usage-meter agent-radar; do
+  [[ "$installed" == *"\"$mod@$MARKETPLACE\""* ]] && continue
+  if ! claude plugin install "$mod@$MARKETPLACE"; then
+    echo "bootstrap: $mod did not install, so it is not active. To retry: claude plugin install $mod@$MARKETPLACE" >&2
+    failed="$failed $mod"
+  fi
+done
+
 # Auto-update has no CLI or marketplace.json switch, so set it where Claude Code
 # looks first: autoUpdate on the extraKnownMarketplaces entry in settings.json.
 manual="Turn on auto-update by hand: /plugin, Marketplaces, $MARKETPLACE, Enable auto-update."
@@ -87,13 +100,23 @@ else
 fi
 
 claude plugin list
+# With a failed mod, nothing above says Done: the last line says what is missing.
+done_word="Done. "
+done_except="Done, except auto-update. "
+if [ -n "$failed" ]; then
+  done_word=""
+  done_except=""
+fi
 if [ "$auto_update" = 1 ]; then
-  echo "Done. Auto-update was set in settings.json: confirm it under /plugin, Marketplaces."
+  echo "${done_word}Auto-update was set in settings.json: confirm it under /plugin, Marketplaces."
 else
-  echo "Done, except auto-update. $manual"
+  echo "$done_except$manual"
   if [ "$ssh_works" != 1 ]; then
     echo "No GitHub SSH key found, and this could not be saved: set CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1 in your shell profile, or plugin updates will fail."
   fi
+fi
+if [ -n "$failed" ]; then
+  echo "Done, except these mods, which did not install:$failed. To retry, run this script again."
 fi
 
 }
