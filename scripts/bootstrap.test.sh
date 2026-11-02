@@ -32,7 +32,8 @@ unset CLAUDE_CONFIG_DIR CLAUDE_CODE_PLUGIN_PREFER_HTTPS
 fail() { echo "FAIL: $*" >&2; exit 1; }
 
 echo '{"theme":"dark","env":{"KEEP":"1"}}' > "$settings"
-"$here/bootstrap.sh" > /dev/null
+out=$("$here/bootstrap.sh" 2>&1)
+[[ "$out" == *"Auto-update was set"* ]] || fail "success did not report auto-update"
 python3 -I - "$settings" <<'PY' || fail "settings merge"
 import json, sys
 s = json.load(open(sys.argv[1]))
@@ -49,8 +50,18 @@ first=$(cat "$settings"); : > "$STUB_LOG"
 grep -q 'marketplace add\|plugin install' "$STUB_LOG" && fail "second run added or installed again"
 
 echo 'not json' > "$settings"
-"$here/bootstrap.sh" > /dev/null 2>&1 || fail "invalid settings stopped the run"
+out=$("$here/bootstrap.sh" 2>&1) || fail "invalid settings stopped the run"
 [ "$(cat "$settings")" = 'not json' ] || fail "invalid settings were overwritten"
+[[ "$out" != *"Auto-update was set"* ]] || fail "claimed auto-update with invalid settings"
+[[ "$out" == *"Enable auto-update"* ]] || fail "gave no manual step with invalid settings"
+
+# A PATH holding only what the script needs, so python3 is not found.
+mkdir "$tmp/nopy"
+for tool in bash env git awk sort head touch; do ln -s "$(command -v "$tool")" "$tmp/nopy/$tool"; done
+ln -s "$tmp/bin/claude" "$tmp/bin/ssh" "$tmp/nopy/"
+out=$(PATH=$tmp/nopy "$here/bootstrap.sh" 2>&1) || fail "missing python3 stopped the run"
+[[ "$out" != *"Auto-update was set"* ]] || fail "claimed auto-update without python3"
+[[ "$out" == *"Enable auto-update"* ]] || fail "gave no manual step without python3"
 
 STUB_VERSION=2.1.9 "$here/bootstrap.sh" > /dev/null 2>&1 && fail "accepted an old claude"
 STUB_VERSION=2.1.287 "$here/bootstrap.sh" > /dev/null 2>&1 || fail "refused the minimum claude"

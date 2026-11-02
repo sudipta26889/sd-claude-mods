@@ -41,8 +41,9 @@ fi
 # Auto-update has no CLI or marketplace.json switch. The documented routes are
 # the /plugin screen and managed settings; this user-settings edit is unverified.
 manual="Turn on auto-update by hand: /plugin, Marketplaces, $MARKETPLACE, Enable auto-update."
+auto_update=0
 if command -v python3 >/dev/null; then
-  python3 -I - "$CONFIG_DIR/settings.json" "$MARKETPLACE" "$REPO" "$ssh_works" <<'PY' || echo "bootstrap: left settings.json alone. $manual" >&2
+  if python3 -I - "$CONFIG_DIR/settings.json" "$MARKETPLACE" "$REPO" "$ssh_works" <<'PY'
 import json, os, sys, tempfile
 
 path, name, repo, ssh_works = sys.argv[1:]
@@ -71,9 +72,18 @@ if json.dumps(settings) != before:
         os.chmod(tmp, os.stat(path).st_mode & 0o777)
     os.replace(tmp, path)
 PY
+  then
+    auto_update=1
+  else
+    echo "bootstrap: left settings.json alone." >&2
+  fi
 else
-  echo "bootstrap: python3 not found. $manual" >&2
+  echo "bootstrap: python3 not found, so settings.json was not changed." >&2
 fi
 
 claude plugin list
-echo "Done. Auto-update was set in settings.json, a method the docs do not describe: confirm it under /plugin, Marketplaces."
+if [ "$auto_update" = 1 ]; then
+  echo "Done. Auto-update was set in settings.json, a method the docs do not describe: confirm it under /plugin, Marketplaces."
+else
+  echo "Done, except auto-update. $manual"
+fi
