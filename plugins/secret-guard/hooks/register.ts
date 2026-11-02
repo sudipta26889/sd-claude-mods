@@ -32,6 +32,9 @@ const UNATTENDED = new Set<string>([
   'plugin',
 ])
 
+// Fixed text: neither the prompt nor the error may reach this warning.
+const UNCHECKED = 'secret-guard failed, so this prompt was sent but not checked for secrets.'
+
 // Rule labels only: the matched text must never reach a log, toast or message.
 export const secretTypes = (text: string): string[] =>
   RULES.filter(rule => rule.pattern.test(text)).map(rule => rule.type)
@@ -42,8 +45,9 @@ export const register: Register = on => {
       return next(e)
     }
 
-    if (ALLOW.test(e.text)) {
-      return next({ ...e, text: e.text.replace(ALLOW, '') })
+    const unprefixed = e.text.replace(ALLOW, '')
+    if (unprefixed !== e.text) {
+      return next({ ...e, text: unprefixed })
     }
 
     const types = secretTypes(e.text)
@@ -55,9 +59,16 @@ export const register: Register = on => {
             `secret-guard stopped this prompt, so it was not sent. It looks like it contains: ${types.join(', ')}. ` +
             'To send it anyway, start the prompt with allow-secret:',
         }
-  }).catch(($, e, next) =>
-    next.called
-      ? next(e)
-      : { drop: 'secret-guard failed while checking this prompt, so it was not sent.' },
-  )
+  }).catch(($, e, next) => {
+    // A broken guard must not block every prompt, so it warns and lets them through.
+    if (!next.called) {
+      try {
+        $.ui.toast(UNCHECKED, { timeoutMs: 15000 })
+      } catch {
+        // The prompt still goes through when the warning cannot be shown.
+      }
+    }
+
+    return next(e)
+  })
 }
