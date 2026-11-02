@@ -10,6 +10,7 @@ settings=$tmp/home/.claude/settings.json
 
 cat > "$tmp/bin/claude" <<'STUB'
 #!/usr/bin/env bash
+if [ -n "${STUB_DRAIN:-}" ]; then cat > /dev/null; fi
 echo "$*" >> "$STUB_LOG"
 case "$*" in
   --version) echo "${STUB_VERSION:-2.1.316} (Claude Code)" ;;
@@ -22,6 +23,7 @@ STUB
 # Stands in for ssh so the test neither needs a network nor depends on a key.
 cat > "$tmp/bin/ssh" <<'STUB'
 #!/usr/bin/env bash
+if [ -n "${STUB_DRAIN:-}" ]; then cat > /dev/null; fi
 if [ -n "${STUB_SSH_OK:-}" ]; then echo "Hi! You've successfully authenticated"; exit 1; fi
 echo "Permission denied"; exit 255
 STUB
@@ -73,5 +75,16 @@ STUB_VERSION=2.1.287 "$here/bootstrap.sh" > /dev/null 2>&1 || fail "refused the 
 rm "$settings"
 STUB_SSH_OK=1 "$here/bootstrap.sh" > /dev/null
 grep -q PREFER_HTTPS "$settings" && fail "forced HTTPS on a computer whose SSH key works"
+
+# curl | bash: children inherit the script as stdin, and may read it.
+rm "$settings"
+out=$(STUB_DRAIN=1 STUB_SSH_OK=1 bash < "$here/bootstrap.sh" 2>&1) || fail "piped run failed"
+[[ "$out" == *"Auto-update was set"* ]] || fail "piped run stopped early"
+
+# A truncated download must run nothing.
+: > "$STUB_LOG"
+lines=$(wc -l < "$here/bootstrap.sh")
+head -n "$((lines / 2))" "$here/bootstrap.sh" | bash > /dev/null 2>&1 && fail "truncated script exited 0"
+[ ! -s "$STUB_LOG" ] || fail "truncated script ran commands"
 
 echo ok

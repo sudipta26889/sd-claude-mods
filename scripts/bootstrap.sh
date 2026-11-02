@@ -2,6 +2,11 @@
 # New-computer setup. Safe to run again: each step checks before it changes.
 set -euo pipefail
 
+# Under curl | bash the script is every child's stdin, and a child that reads it
+# would silently end the run. In a function, bash parses it all before running
+# anything, which also means a truncated download runs nothing.
+main() {
+
 REPO=sudipta26889/sd-claude-mods
 MARKETPLACE=sd-claude-mods
 MIN_CLAUDE=2.1.287
@@ -20,7 +25,7 @@ lowest=$(printf '%s\n%s\n' "$MIN_CLAUDE" "$version" | sort -t. -k1,1n -k2,2n -k3
 # key, plugin updates only work over HTTPS when this variable is set.
 # (ssh -T exits 1 even when it authenticates, so read its words, not its status.)
 ssh_works=0
-case "$(ssh -o BatchMode=yes -o ConnectTimeout=5 -T git@github.com 2>&1 || true)" in
+case "$(ssh -n -o BatchMode=yes -o ConnectTimeout=5 -T git@github.com 2>&1 || true)" in
   *"successfully authenticated"*) ssh_works=1 ;;
   *) export CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1 ;;
 esac
@@ -38,8 +43,8 @@ if [[ "$installed" != *"\"sd-core@$MARKETPLACE\""* ]]; then
   claude plugin install "sd-core@$MARKETPLACE"
 fi
 
-# Auto-update has no CLI or marketplace.json switch. The documented routes are
-# the /plugin screen and managed settings; this user-settings edit is unverified.
+# Auto-update has no CLI or marketplace.json switch, so set it where Claude Code
+# looks first: autoUpdate on the extraKnownMarketplaces entry in settings.json.
 manual="Turn on auto-update by hand: /plugin, Marketplaces, $MARKETPLACE, Enable auto-update."
 auto_update=0
 if command -v python3 >/dev/null; then
@@ -83,10 +88,14 @@ fi
 
 claude plugin list
 if [ "$auto_update" = 1 ]; then
-  echo "Done. Auto-update was set in settings.json, a method the docs do not describe: confirm it under /plugin, Marketplaces."
+  echo "Done. Auto-update was set in settings.json, but an update arriving this way is unverified: confirm the setting under /plugin, Marketplaces."
 else
   echo "Done, except auto-update. $manual"
   if [ "$ssh_works" != 1 ]; then
     echo "No GitHub SSH key found, and this could not be saved: set CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1 in your shell profile, or plugin updates will fail."
   fi
 fi
+
+}
+
+main "$@"
