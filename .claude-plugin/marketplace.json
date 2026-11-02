@@ -1,6 +1,8 @@
 {
   "name": "sd-claude-mods",
-  "owner": { "name": "sudipta26889" },
+  "owner": {
+    "name": "sudipta26889"
+  },
   "plugins": [
     {
       "name": "sd-core",
@@ -11,6 +13,36 @@
       "name": "secret-guard",
       "source": "./plugins/secret-guard",
       "description": "Stops a prompt that looks like it contains a secret, before it is sent."
+    },
+    {
+      "name": "usage-meter",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/hamzafer/claude-code-mods.git",
+        "path": "mods/usage-meter",
+        "sha": "5cef0d32daad002b7936920e47a317fd2fd066f0"
+      },
+      "description": "Your plan's 5-hour and 7-day usage above the prompt, with the reset countdown and the session's cost."
+    },
+    {
+      "name": "agent-radar",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/hamzafer/claude-code-mods.git",
+        "path": "mods/agent-radar",
+        "sha": "5cef0d32daad002b7936920e47a317fd2fd066f0"
+      },
+      "description": "One live line above the prompt per running subagent or background shell. /radar shows the details."
+    },
+    {
+      "name": "blast-radius",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/anthropics/claude-code-playground.git",
+        "path": "claude-code/mods/blast-radius",
+        "sha": "569c5283d9a0a7ee7938df85bb32e4f48cbb8c86"
+      },
+      "description": "Holds a risky shell command and shows what it would change, with Proceed and Cancel buttons."
     }
   ]
 }
