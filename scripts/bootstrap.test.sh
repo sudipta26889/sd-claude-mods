@@ -54,6 +54,9 @@ out=$("$here/bootstrap.sh" 2>&1) || fail "invalid settings stopped the run"
 [ "$(cat "$settings")" = 'not json' ] || fail "invalid settings were overwritten"
 [[ "$out" != *"Auto-update was set"* ]] || fail "claimed auto-update with invalid settings"
 [[ "$out" == *"Enable auto-update"* ]] || fail "gave no manual step with invalid settings"
+[[ "$out" == *"CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1"* ]] || fail "no HTTPS step without an SSH key"
+out=$(STUB_SSH_OK=1 "$here/bootstrap.sh" 2>&1)
+[[ "$out" != *"CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1"* ]] || fail "HTTPS step shown despite a working SSH key"
 
 # A PATH holding only what the script needs, so python3 is not found.
 mkdir "$tmp/nopy"
@@ -62,6 +65,7 @@ ln -s "$tmp/bin/claude" "$tmp/bin/ssh" "$tmp/nopy/"
 out=$(PATH=$tmp/nopy "$here/bootstrap.sh" 2>&1) || fail "missing python3 stopped the run"
 [[ "$out" != *"Auto-update was set"* ]] || fail "claimed auto-update without python3"
 [[ "$out" == *"Enable auto-update"* ]] || fail "gave no manual step without python3"
+[[ "$out" == *"CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1"* ]] || fail "no HTTPS step without python3"
 
 STUB_VERSION=2.1.9 "$here/bootstrap.sh" > /dev/null 2>&1 && fail "accepted an old claude"
 STUB_VERSION=2.1.287 "$here/bootstrap.sh" > /dev/null 2>&1 || fail "refused the minimum claude"

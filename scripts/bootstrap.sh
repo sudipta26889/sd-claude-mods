@@ -86,4 +86,7 @@ if [ "$auto_update" = 1 ]; then
   echo "Done. Auto-update was set in settings.json, a method the docs do not describe: confirm it under /plugin, Marketplaces."
 else
   echo "Done, except auto-update. $manual"
+  if [ "$ssh_works" != 1 ]; then
+    echo "No GitHub SSH key found, and this could not be saved: set CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1 in your shell profile, or plugin updates will fail."
+  fi
 fi
