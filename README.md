@@ -49,6 +49,7 @@ claude plugin uninstall agent-radar@sd-claude-mods
 claude plugin uninstall blast-radius@sd-claude-mods
 claude plugin uninstall deploy-guard@sd-claude-mods
 claude plugin uninstall voice-fix@sd-claude-mods
+claude plugin uninstall reflect@sd-claude-mods
 claude plugin uninstall handoff@sd-claude-mods
 claude plugin uninstall sd-core@sd-claude-mods --prune -y   # also removes secret-guard
 ```
@@ -98,6 +99,7 @@ Run it again at any time: each step checks before it changes anything.
 | `blast-radius` | Holds a risky shell command and shows what it would change, with Proceed and Cancel buttons. | Optional, by name | [anthropics/claude-code-playground](https://github.com/anthropics/claude-code-playground/tree/569c5283d9a0a7ee7938df85bb32e4f48cbb8c86/claude-code/mods/blast-radius) | Apache-2.0 | `569c5283d9a0a7ee7938df85bb32e4f48cbb8c86` |
 | `deploy-guard` | Holds a `git push` for your yes while a job is running. You say what counts as running. | Optional, by name | This repository | MIT | Not applicable |
 | `voice-fix` | Swaps misheard words in a prompt using your own glossary. No model call. | Optional, by name | This repository | MIT | Not applicable |
+| `reflect` | Offers to save a correction such as "never do X" as a permanent rule, once you press Save. No model call. | Optional, by name | This repository | MIT | Not applicable |
 | `handoff` | `/handoff` summarises the conversation, saves the summary privately, and carries on in a fresh conversation with it. One model call. | Optional, by name | This repository | MIT | Not applicable |
 
 `sd-core` holds only the guard. If a dependency can't be fetched, installing the plugin that needs it fails and the guard stays off, so nothing from another repository goes in `sd-core`. `bootstrap.sh` installs `usage-meter` and `agent-radar` separately. Installing `sd-core` from `/plugin` gets you `secret-guard` only.
@@ -156,6 +158,34 @@ It leaves alone anything in backticks or a code fence, URLs, and words that are 
 - **`claude -p` scripts get swaps too,** because they look the same as the Desktop app and VS Code. Messages from other sessions, schedules, background tasks and plugins do not.
 - **An empty glossary does nothing,** with no warning.
 - **`!` bash mode and local slash commands such as `/rename` are not covered,** as with `secret-guard`. Images and `@file` contents are not read either.
+
+## reflect
+
+Optional: `claude plugin install reflect@sd-claude-mods`.
+
+When a sentence in your prompt starts with `never`, `always`, `stop` plus a word ending in `-ing`, `don't ever`, `do not ever` or `from now on`, a band above the prompt shows that sentence and asks whether to save it as a permanent rule. Click **Save** or **Dismiss**, or press ctrl+x tab and then `s` or `d`. An offer you ignore ends at your next prompt. Nothing is saved unless you press Save.
+
+Saved rules go into the system prompt of each new session, so a rule reaches Claude from your next session. The current session has already read your sentence.
+
+| Command | What it does |
+| --- | --- |
+| `/reflect` | Lists saved rules |
+| `/reflect add <rule>` | Saves a rule in your own words. Use it to reword a rule, or when no band appeared |
+| `/reflect remove <number>` | Removes a rule |
+
+**Tokens:** `reflect` never calls a model, so spotting and saving a rule costs nothing. Each saved rule adds its text to every session's system prompt, so keep rules few.
+
+**Where rules are kept:** in plain text in `plugins/store/reflect_*.json` under your Claude config folder, normally `~/.claude`. Claude Code creates that file with mode 600 in a folder with mode 700. This was checked on v2.1.317, and CI does not check it. Rules go nowhere except your own Claude sessions. An offer you have not saved stays in memory and is never written to disk. `reflect` does not change `CLAUDE.md`, memory or settings.
+
+**Limits:**
+
+- **It matches fixed phrases at the start of a sentence.** It misses other wordings, such as `don't do that`, and it offers sentences that are not corrections, such as `Always the same error.` Prompts over 2,000 characters are skipped as likely pastes, and so are sentences over 200.
+- **It saves your exact sentence.** Nothing is cleaned up, so `Never do that.` makes a poor rule. Reword it with `/reflect add`.
+- **A saved secret goes to every session.** A prompt that `secret-guard` stops is not offered, but one sent with `allow-secret:` can be. Read the sentence before you press Save.
+- **One offer per prompt:** the first matching sentence.
+- **Rules stay on one computer.** They are not synced. Uninstalling may leave the file behind, which has not been tested, so run `/reflect remove` first if you want them gone.
+- **No band under `claude -p` or in the VS Code extension.** Use `/reflect add` in VS Code. Saved rules still reach `claude -p` sessions. The band was tested live in the terminal only.
+- **Another mod can hide the band.** A mod that draws in this space without keeping what other mods draw hides the offer.
 
 ## handoff
 

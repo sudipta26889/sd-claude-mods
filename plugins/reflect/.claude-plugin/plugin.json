@@ -1,0 +1,5 @@
+{
+  "name": "reflect",
+  "description": "Offers to save a correction such as \"never do X\" as a permanent rule, once you press Save. No model call.",
+  "types": "./types/index.d.ts"
+}
