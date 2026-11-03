@@ -156,4 +156,7 @@ lines=$(wc -l < "$here/bootstrap.sh")
 head -n "$((lines / 2))" "$here/bootstrap.sh" | bash > /dev/null 2>&1 && fail "truncated script exited 0"
 [ ! -s "$STUB_LOG" ] || fail "truncated script ran commands"
 
+# CI runs this file, and plugin tests have no real processes to check a file mode with.
+sh "$here/../plugins/handoff/tests/save.test.sh"
+
 echo ok

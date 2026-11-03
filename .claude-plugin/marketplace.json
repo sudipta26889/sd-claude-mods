@@ -53,6 +53,11 @@
       "name": "voice-fix",
       "source": "./plugins/voice-fix",
       "description": "Swaps misheard words in a prompt using your own glossary. No model call."
+    },
+    {
+      "name": "handoff",
+      "source": "./plugins/handoff",
+      "description": "/handoff summarises this conversation, saves it privately, and continues in a fresh one with the summary."
     }
   ]
 }
