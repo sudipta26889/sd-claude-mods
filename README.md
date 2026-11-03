@@ -47,6 +47,7 @@ claude plugin marketplace remove sd-claude-mods
 claude plugin uninstall usage-meter@sd-claude-mods
 claude plugin uninstall agent-radar@sd-claude-mods
 claude plugin uninstall blast-radius@sd-claude-mods
+claude plugin uninstall deploy-guard@sd-claude-mods
 claude plugin uninstall voice-fix@sd-claude-mods
 claude plugin uninstall sd-core@sd-claude-mods --prune -y   # also removes secret-guard
 ```
@@ -94,6 +95,7 @@ Run it again at any time: each step checks before it changes anything.
 | `usage-meter` | Shows the plan's 5-hour and 7-day usage, the reset countdown and the session's cost above the prompt. | `bootstrap.sh` | [hamzafer/claude-code-mods](https://github.com/hamzafer/claude-code-mods/tree/5cef0d32daad002b7936920e47a317fd2fd066f0/mods/usage-meter) | MIT | `5cef0d32daad002b7936920e47a317fd2fd066f0` |
 | `agent-radar` | Shows one live line above the prompt per running subagent or background shell. `/radar` shows the details. | `bootstrap.sh` | [hamzafer/claude-code-mods](https://github.com/hamzafer/claude-code-mods/tree/5cef0d32daad002b7936920e47a317fd2fd066f0/mods/agent-radar) | MIT | `5cef0d32daad002b7936920e47a317fd2fd066f0` |
 | `blast-radius` | Holds a risky shell command and shows what it would change, with Proceed and Cancel buttons. | Optional, by name | [anthropics/claude-code-playground](https://github.com/anthropics/claude-code-playground/tree/569c5283d9a0a7ee7938df85bb32e4f48cbb8c86/claude-code/mods/blast-radius) | Apache-2.0 | `569c5283d9a0a7ee7938df85bb32e4f48cbb8c86` |
+| `deploy-guard` | Holds a `git push` for your yes while a job is running. You say what counts as running. | Optional, by name | This repository | MIT | Not applicable |
 | `voice-fix` | Swaps misheard words in a prompt using your own glossary. No model call. | Optional, by name | This repository | MIT | Not applicable |
 
 `sd-core` holds only the guard. If a dependency can't be fetched, installing the plugin that needs it fails and the guard stays off, so nothing from another repository goes in `sd-core`. `bootstrap.sh` installs `usage-meter` and `agent-radar` separately. Installing `sd-core` from `/plugin` gets you `secret-guard` only.
@@ -111,6 +113,30 @@ Third-party mods are fetched from their own repositories at the reviewed commit.
 - **It runs project code for migrations.** It runs the project's own migration status command before you answer, which loads your project's code.
 
 It adds a check and removes none: after Proceed, the normal permission prompt still applies.
+
+## deploy-guard
+
+Optional: `claude plugin install deploy-guard@sd-claude-mods`. Then set `jobCheck` on the install screen or in `/config`. It stays on that computer, never in this repository.
+
+`jobCheck` is a shell command, run before each `git push` the model tries:
+
+| Exit code | Meaning | What happens |
+| --- | --- | --- |
+| 0 | A job is running | The push is held: you are asked, and the first line of the command's output says which job |
+| 1 | No job | The push goes on under your normal permissions |
+| Anything else, or over 15 seconds | The check failed | A warning shows and the push goes on |
+
+`grep` and `pgrep` already exit this way, and `ssh` adds 255 when it can't connect, so a check is often one line: `ssh my-server pgrep -f nightly-import`. With `jobCheck` empty, each push warns and goes on.
+
+**Limits:**
+
+- **It reads only the command text.** It misses aliases, scripts such as `./deploy.sh`, `gh pr merge`, and pushes you run yourself, including `!` bash mode. Use permission rules for a hard block.
+- **Any text that says `git push` can be held,** such as a commit message or `git push --dry-run`, but only while a job is running.
+- **One check for the whole computer.** The check runs in the session's folder and knows nothing about the repository being pushed. A job holds pushes from every repository unless your command tells them apart.
+- **`claude -p` and background subagents refuse the push.** Nobody can be asked, so the model gets the reason as an error. A failed check's warning is not drawn under `claude -p`, so it reaches only the debug log.
+- **Your command runs as you,** on every push, and adds up to 15 seconds.
+- **macOS and Linux only.** It runs through `sh`.
+- **A check killed by a signal counts as no job,** because Claude Code reports that as exit code 1.
 
 ## voice-fix
 

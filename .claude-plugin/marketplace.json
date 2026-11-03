@@ -45,6 +45,11 @@
       "description": "Holds a risky shell command and shows what it would change, with Proceed and Cancel buttons."
     },
     {
+      "name": "deploy-guard",
+      "source": "./plugins/deploy-guard",
+      "description": "Holds a git push for your yes while a job is running, as your own check command defines one."
+    },
+    {
       "name": "voice-fix",
       "source": "./plugins/voice-fix",
       "description": "Swaps misheard words in a prompt using your own glossary. No model call."
