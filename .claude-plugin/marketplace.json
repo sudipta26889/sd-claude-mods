@@ -53,6 +53,11 @@
       "name": "voice-fix",
       "source": "./plugins/voice-fix",
       "description": "Swaps misheard words in a prompt using your own glossary. No model call."
+    },
+    {
+      "name": "reflect",
+      "source": "./plugins/reflect",
+      "description": "Offers to save a correction such as \"never do X\" as a permanent rule, once you press Save. No model call."
     }
   ]
 }
