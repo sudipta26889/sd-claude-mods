@@ -50,6 +50,7 @@ claude plugin uninstall blast-radius@sd-claude-mods
 claude plugin uninstall deploy-guard@sd-claude-mods
 claude plugin uninstall voice-fix@sd-claude-mods
 claude plugin uninstall reflect@sd-claude-mods
+claude plugin uninstall handoff@sd-claude-mods
 claude plugin uninstall sd-core@sd-claude-mods --prune -y   # also removes secret-guard
 ```
 
@@ -99,6 +100,7 @@ Run it again at any time: each step checks before it changes anything.
 | `deploy-guard` | Holds a `git push` for your yes while a job is running. You say what counts as running. | Optional, by name | This repository | MIT | Not applicable |
 | `voice-fix` | Swaps misheard words in a prompt using your own glossary. No model call. | Optional, by name | This repository | MIT | Not applicable |
 | `reflect` | Offers to save a correction such as "never do X" as a permanent rule, once you press Save. No model call. | Optional, by name | This repository | MIT | Not applicable |
+| `handoff` | `/handoff` summarises the conversation, saves the summary privately, and carries on in a fresh conversation with it. One model call. | Optional, by name | This repository | MIT | Not applicable |
 
 `sd-core` holds only the guard. If a dependency can't be fetched, installing the plugin that needs it fails and the guard stays off, so nothing from another repository goes in `sd-core`. `bootstrap.sh` installs `usage-meter` and `agent-radar` separately. Installing `sd-core` from `/plugin` gets you `secret-guard` only.
 
@@ -184,6 +186,28 @@ Saved rules go into the system prompt of each new session, so a rule reaches Cla
 - **Rules stay on one computer.** They are not synced. Uninstalling may leave the file behind, which has not been tested, so run `/reflect remove` first if you want them gone.
 - **No band under `claude -p` or in the VS Code extension.** Use `/reflect add` in VS Code. Saved rules still reach `claude -p` sessions. The band was tested live in the terminal only.
 - **Another mod can hide the band.** A mod that draws in this space without keeping what other mods draw hides the offer.
+
+## handoff
+
+Optional: `claude plugin install handoff@sd-claude-mods`.
+
+Run `/handoff` when a long conversation has got heavy. One model call writes a summary of the job so far, the summary is saved to a file, and `/clear` runs. The summary then goes to the model, hidden, with your next prompt, so the fresh conversation carries on from there.
+
+To pick it up in another window or later, run `/handoff load` in a new session in the same folder, then type your prompt.
+
+**Where it writes:** `~/.claude/handoffs/<folder>.md`, or under `CLAUDE_CONFIG_DIR` if that is set, where `<folder>` is the project's path with every other character turned into `-`. Session text can contain secrets, so the file is mode 600 in a mode 700 folder. The mod sends it nowhere except to the model, as part of the session. The file stays until the next `/handoff` in that folder replaces it, so delete it yourself when you no longer want it: `rm -r ~/.claude/handoffs`.
+
+If anything fails, a message says so and the conversation is kept: nothing is cleared unless the summary was saved first.
+
+**Limits:**
+
+- **The summary is the model's.** It can miss things, and later requests only know what it kept. It remembers this job, not your general preferences.
+- **Secrets are not filtered.** The model is told not to copy them, but nothing checks that, and `secret-guard` does not scan the summary.
+- **It costs tokens up front.** The summary call sends the whole conversation, and the summary goes in every later request. It should pay off only in long sessions, and the saving has not been measured.
+- **One file per folder.** Two sessions in the same folder replace each other's handoff, and very similar paths, such as `a/b` and `a-b`, share a file. The file's first line names the folder it came from.
+- **It needs a finished turn.** With nothing to summarise, such as a first `/handoff` in a session or a single `claude -p` prompt, it says so and saves nothing. A conversation too full for one more model call also fails: use `/compact` instead.
+- **A plugin reload forgets the summary waiting for your next prompt.** `/handoff load` gets it back.
+- **It needs `sh` and `mktemp`.** Without them, as on Windows without a Unix shell, the save fails and the conversation is kept. That path has not been tested.
 
 ## secret-guard
 
