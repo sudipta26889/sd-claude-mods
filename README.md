@@ -11,7 +11,7 @@ sd-claude-mods and develop-like-sudipta are two separate things. You install eac
 | What it is | Mods that change how Claude Code behaves | A plugin for development discipline |
 | Repo | [sudipta26889/sd-claude-mods](https://github.com/sudipta26889/sd-claude-mods) | [sudipta26889/claude-plugin-develop-like-sudipta](https://github.com/sudipta26889/claude-plugin-develop-like-sudipta) |
 | Install | The `curl` line under [Install](#install) | `claude plugin marketplace add sudipta26889/claude-plugin-develop-like-sudipta`, then `claude plugin install develop-like-sudipta@claude-plugin-develop-like-sudipta` |
-| What it changes | Stops prompts that look like they contain a secret | Adds slash commands, skills, agents and hooks |
+| What it changes | Stops prompts that look like they contain a secret, and shows plan usage and running agents above the prompt | Adds slash commands, skills, agents and hooks |
 
 - Installing or updating develop-like-sudipta does not install these mods.
 - Installing these mods does not change that plugin.
@@ -21,26 +21,36 @@ Mods install per computer, not per Claude account, so each computer needs the in
 
 ### Check, update and remove
 
-**See what is installed:** run `claude plugin list`. In a session, `/plugin` also shows a line such as `1 mod active · secret-guard`.
+**See what is installed:** run `claude plugin list`. In a session, `/plugin` also shows a line such as `3 mods active · secret-guard, usage-meter, agent-radar`.
 
-**Update:** this happens by itself after [Install](#install). To update by hand, run both lines, then restart Claude Code. Updating `sd-core` does not update `secret-guard`.
+**Update:** this happens by itself after [Install](#install). To update by hand, run these lines, then restart Claude Code. Updating `sd-core` does not update `secret-guard`.
 
 ```bash
+claude plugin marketplace update sd-claude-mods
 claude plugin update sd-core@sd-claude-mods
 claude plugin update secret-guard@sd-claude-mods
+claude plugin update usage-meter@sd-claude-mods
+claude plugin update agent-radar@sd-claude-mods
 ```
 
-**Remove everything:** this removes both plugins and the marketplace.
+**New mods:** a merge does not deliver a new mod to a computer that is already set up. Auto-update only updates what is installed. To get a new mod, run the line under [Install](#install) again.
+
+**Remove everything:** this removes every plugin from here and the marketplace.
 
 ```bash
 claude plugin marketplace remove sd-claude-mods
 ```
 
-**Remove the plugins and keep the marketplace:**
+**Remove one mod and keep the marketplace:**
 
 ```bash
-claude plugin uninstall sd-core@sd-claude-mods --prune -y
+claude plugin uninstall usage-meter@sd-claude-mods
+claude plugin uninstall agent-radar@sd-claude-mods
+claude plugin uninstall blast-radius@sd-claude-mods
+claude plugin uninstall sd-core@sd-claude-mods --prune -y   # also removes secret-guard
 ```
+
+Running the install line again puts `usage-meter` and `agent-radar` back, and it installs `sd-core` and `secret-guard` again too. To keep `usage-meter` or `agent-radar` off, use `claude plugin disable <mod>@sd-claude-mods` instead: the install line leaves a disabled mod disabled.
 
 Uninstalling `sd-core` without `--prune` leaves `secret-guard` installed and still stopping prompts. `claude plugin prune` then removes it.
 
@@ -68,18 +78,37 @@ curl -fsSL https://raw.githubusercontent.com/sudipta26889/sd-claude-mods/main/sc
 
 Run it again at any time: each step checks before it changes anything.
 
+**If a third-party mod can't be fetched:** the run carries on. A warning names the mod and the command to retry it, and the last line lists what did not install. `secret-guard` still goes on, because `sd-core` does not depend on those mods. Run the install line again to retry.
+
 **No GitHub SSH key?** Installs from `/plugin` and plugin updates need `CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1`, because they do not fall back to HTTPS on their own. `bootstrap.sh` adds it to the `env` block of `settings.json` when it finds no working key.
 
 **Auto-update** is on after `bootstrap.sh`. `marketplace.json` has no field for it, so the script sets `"autoUpdate": true` on this marketplace under `extraKnownMarketplaces` in your user `settings.json`. Merged changes arrive in the background within about ten minutes of your first message in a session, and load after `/reload-plugins` or at your next launch. To confirm it is on, open `/plugin`, Marketplaces, `sd-claude-mods`: the row reads Disable auto-update. `DISABLE_UPDATES`, `DISABLE_AUTOUPDATER` and `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` turn plugin auto-update off.
 
 ## Mods
 
-| Plugin | What it does |
-| --- | --- |
-| `sd-core` | The set of mods every computer gets. Holds no code, only `dependencies`. |
-| `secret-guard` | Stops a prompt that looks like it contains a secret. |
+| Plugin | What it does | Installed by | Source | Licence | Reviewed SHA |
+| --- | --- | --- | --- | --- | --- |
+| `sd-core` | Holds no code. Its only dependency is `secret-guard`, the one mod every computer must have. | `bootstrap.sh` | This repository | MIT | Not applicable |
+| `secret-guard` | Stops a prompt that looks like it contains a secret. | `sd-core` | This repository | MIT | Not applicable |
+| `usage-meter` | Shows the plan's 5-hour and 7-day usage, the reset countdown and the session's cost above the prompt. | `bootstrap.sh` | [hamzafer/claude-code-mods](https://github.com/hamzafer/claude-code-mods/tree/5cef0d32daad002b7936920e47a317fd2fd066f0/mods/usage-meter) | MIT | `5cef0d32daad002b7936920e47a317fd2fd066f0` |
+| `agent-radar` | Shows one live line above the prompt per running subagent or background shell. `/radar` shows the details. | `bootstrap.sh` | [hamzafer/claude-code-mods](https://github.com/hamzafer/claude-code-mods/tree/5cef0d32daad002b7936920e47a317fd2fd066f0/mods/agent-radar) | MIT | `5cef0d32daad002b7936920e47a317fd2fd066f0` |
+| `blast-radius` | Holds a risky shell command and shows what it would change, with Proceed and Cancel buttons. | Optional, by name | [anthropics/claude-code-playground](https://github.com/anthropics/claude-code-playground/tree/569c5283d9a0a7ee7938df85bb32e4f48cbb8c86/claude-code/mods/blast-radius) | Apache-2.0 | `569c5283d9a0a7ee7938df85bb32e4f48cbb8c86` |
 
-Optional mods stay out of `sd-core`, because Claude Code refuses to disable a plugin that an enabled plugin depends on. Install those by name: `claude plugin install <mod>@sd-claude-mods`.
+`sd-core` holds only the guard. If a dependency can't be fetched, installing the plugin that needs it fails and the guard stays off, so nothing from another repository goes in `sd-core`. `bootstrap.sh` installs `usage-meter` and `agent-radar` separately. Installing `sd-core` from `/plugin` gets you `secret-guard` only.
+
+`blast-radius` is opt-in, and `bootstrap.sh` does not install it. Install it by name: `claude plugin install blast-radius@sd-claude-mods`.
+
+Third-party mods are fetched from their own repositories at the reviewed commit. None of their code is kept here, and none of it changes until the pinned SHA in `marketplace.json` changes. Mods are not sandboxed, so read a new commit before you pin it.
+
+**`agent-radar` limit:** it shows the last line of a background shell's output above the prompt, so a command that prints a secret shows it on screen.
+
+**`blast-radius` limits:**
+
+- **`claude -p` waits.** Nothing is drawn, so nobody can answer. A risky command waits, and its source refuses the command after 10 minutes. This can stall bots and scripts.
+- **It reads only the command text.** It misses forms such as `bash -c "rm -rf x"`. Use permission rules for a hard block.
+- **It runs project code for migrations.** It runs the project's own migration status command before you answer, which loads your project's code.
+
+It adds a check and removes none: after Proceed, the normal permission prompt still applies.
 
 ## secret-guard
 
@@ -113,9 +142,9 @@ If the guard itself fails, the prompt is sent unchecked and a warning says so, b
 
 `plugins/secret-guard` is a stable path: another repository pins it, so do not rename or move it.
 
-No version numbers: plugin manifests and marketplace entries omit `version`, so installs track commits. Entry and manifest names must match. Per-computer values go in `userConfig`, never in the repository.
+No version numbers: our plugin manifests and marketplace entries omit `version`, so installs track commits. The third-party manifests set their own `version`, which Claude Code reads first, so a new pinned SHA reaches computers only if that `version` also changed. Entry and manifest names must match. Per-computer values go in `userConfig`, never in the repository.
 
-`main` is protected: every change goes through a pull request that passes the `check` job. Installed computers track `main`, so merging is releasing.
+`main` is protected: every change goes through a pull request that passes the `check` job. Installed computers track `main`, so merging is releasing, except that a new mod needs the install line run again.
 
 ```bash
 claude --plugin-dir plugins/secret-guard     # run a mod from its folder
