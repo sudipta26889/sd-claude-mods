@@ -47,6 +47,7 @@ claude plugin marketplace remove sd-claude-mods
 claude plugin uninstall usage-meter@sd-claude-mods
 claude plugin uninstall agent-radar@sd-claude-mods
 claude plugin uninstall blast-radius@sd-claude-mods
+claude plugin uninstall voice-fix@sd-claude-mods
 claude plugin uninstall sd-core@sd-claude-mods --prune -y   # also removes secret-guard
 ```
 
@@ -93,6 +94,7 @@ Run it again at any time: each step checks before it changes anything.
 | `usage-meter` | Shows the plan's 5-hour and 7-day usage, the reset countdown and the session's cost above the prompt. | `bootstrap.sh` | [hamzafer/claude-code-mods](https://github.com/hamzafer/claude-code-mods/tree/5cef0d32daad002b7936920e47a317fd2fd066f0/mods/usage-meter) | MIT | `5cef0d32daad002b7936920e47a317fd2fd066f0` |
 | `agent-radar` | Shows one live line above the prompt per running subagent or background shell. `/radar` shows the details. | `bootstrap.sh` | [hamzafer/claude-code-mods](https://github.com/hamzafer/claude-code-mods/tree/5cef0d32daad002b7936920e47a317fd2fd066f0/mods/agent-radar) | MIT | `5cef0d32daad002b7936920e47a317fd2fd066f0` |
 | `blast-radius` | Holds a risky shell command and shows what it would change, with Proceed and Cancel buttons. | Optional, by name | [anthropics/claude-code-playground](https://github.com/anthropics/claude-code-playground/tree/569c5283d9a0a7ee7938df85bb32e4f48cbb8c86/claude-code/mods/blast-radius) | Apache-2.0 | `569c5283d9a0a7ee7938df85bb32e4f48cbb8c86` |
+| `voice-fix` | Swaps misheard words in a prompt using your own glossary. No model call. | Optional, by name | This repository | MIT | Not applicable |
 
 `sd-core` holds only the guard. If a dependency can't be fetched, installing the plugin that needs it fails and the guard stays off, so nothing from another repository goes in `sd-core`. `bootstrap.sh` installs `usage-meter` and `agent-radar` separately. Installing `sd-core` from `/plugin` gets you `secret-guard` only.
 
@@ -109,6 +111,23 @@ Third-party mods are fetched from their own repositories at the reviewed commit.
 - **It runs project code for migrations.** It runs the project's own migration status command before you answer, which loads your project's code.
 
 It adds a check and removes none: after Proceed, the normal permission prompt still applies.
+
+## voice-fix
+
+Optional: `claude plugin install voice-fix@sd-claude-mods`. Then set `glossary` on the install screen or in `/config`. It stays on that computer, never in this repository.
+
+`glossary` is comma-separated `heard=meant` pairs, such as `zorb=Zorbix, blue berry=Blueberry`. Heard text matches whole words in any case, and a longer phrase wins over a word inside it. Bad entries are skipped, and a warning at session start counts them.
+
+It leaves alone anything in backticks or a code fence, URLs, and words that are part of a path, flag, email or file name, such as `src/zorb`, `--zorb` or `zorb.py`.
+
+**Limits:**
+
+- **It has no sense of meaning.** A word in the glossary is swapped every time, even when you meant that word. Put it in backticks to keep it, and leave real words out of the glossary if you often mean them.
+- **The swap is silent.** No message says what changed, and the original text is not sent.
+- **Heard and meant text can't contain `,` or `=`.**
+- **`claude -p` scripts get swaps too,** because they look the same as the Desktop app and VS Code. Messages from other sessions, schedules, background tasks and plugins do not.
+- **An empty glossary does nothing,** with no warning.
+- **`!` bash mode and local slash commands such as `/rename` are not covered,** as with `secret-guard`. Images and `@file` contents are not read either.
 
 ## secret-guard
 

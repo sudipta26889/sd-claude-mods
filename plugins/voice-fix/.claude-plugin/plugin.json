@@ -1,0 +1,12 @@
+{
+  "name": "voice-fix",
+  "description": "Swaps misheard words in a prompt using your own glossary. No model call.",
+  "userConfig": {
+    "glossary": {
+      "type": "string",
+      "title": "Glossary",
+      "description": "Comma-separated heard=meant pairs, such as: blue berry=Blueberry, zorb=Zorbix. Heard text matches whole words in any case.",
+      "default": ""
+    }
+  }
+}

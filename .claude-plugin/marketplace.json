@@ -43,6 +43,11 @@
         "sha": "569c5283d9a0a7ee7938df85bb32e4f48cbb8c86"
       },
       "description": "Holds a risky shell command and shows what it would change, with Proceed and Cancel buttons."
+    },
+    {
+      "name": "voice-fix",
+      "source": "./plugins/voice-fix",
+      "description": "Swaps misheard words in a prompt using your own glossary. No model call."
     }
   ]
 }
