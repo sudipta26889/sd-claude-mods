@@ -156,6 +156,7 @@ It leaves alone anything in backticks or a code fence, URLs, and words that are 
 - **`claude -p` scripts get swaps too,** because they look the same as the Desktop app and VS Code. Messages from other sessions, schedules, background tasks and plugins do not.
 - **An empty glossary does nothing,** with no warning.
 - **`!` bash mode and local slash commands such as `/rename` are not covered,** as with `secret-guard`. Images and `@file` contents are not read either.
+
 ## reflect
 
 Optional: `claude plugin install reflect@sd-claude-mods`.
