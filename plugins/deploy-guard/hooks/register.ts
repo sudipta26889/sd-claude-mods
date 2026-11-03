@@ -50,7 +50,11 @@ export const register: Register = (on, options) => {
 
     // Where the push would have asked anyway, the dialog shows its own words, not this
     // reason, so the toast is what says why.
-    $.ui.toast(reason, { timeoutMs: 15000 })
+    try {
+      $.ui.toast(reason, { timeoutMs: 15000 })
+    } catch {
+      // The hold must not depend on the toast.
+    }
 
     // A plugin's ask goes to a person, past allow rules and classifiers. Where nobody
     // can be asked, as under claude -p, the engine turns it into a refusal.

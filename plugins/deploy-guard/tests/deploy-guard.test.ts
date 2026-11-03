@@ -165,3 +165,13 @@ test('a warning that fails still lets the push through', async ($, on) => {
 
   expect((await $.tool.check(push)).decision).toBe('allow')
 })
+
+test('a toast that fails still holds the push', { options }, async ($, on) => {
+  permissions(on)
+  host(on, 0)
+  on('ui.toast', () => {
+    throw new Error('no toast here')
+  })
+
+  expect((await $.tool.check(push)).decision).toBe('ask')
+})
