@@ -1,0 +1,12 @@
+{
+  "name": "blast-radius",
+  "description": "Holds a risky shell command and shows what it would change, with Proceed and Cancel buttons. Your own preCheck command can clear the ones you already trust.",
+  "userConfig": {
+    "preCheck": {
+      "type": "string",
+      "title": "Pre-check command",
+      "description": "Optional shell command run before a risky command is held, as `<preCheck> <kind> <command>`. If it exits 0 and prints exactly `approve`, the command runs with no panel. Anything else holds it as usual. Leave empty to hold every risky command.",
+      "default": ""
+    }
+  }
+}
