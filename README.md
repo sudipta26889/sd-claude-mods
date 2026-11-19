@@ -96,7 +96,7 @@ Run it again at any time: each step checks before it changes anything.
 | `secret-guard` | Stops a prompt that looks like it contains a secret. | `sd-core` | This repository | MIT | Not applicable |
 | `usage-meter` | Shows the plan's 5-hour and 7-day usage, the reset countdown and the session's cost above the prompt. | `bootstrap.sh` | [hamzafer/claude-code-mods](https://github.com/hamzafer/claude-code-mods/tree/5cef0d32daad002b7936920e47a317fd2fd066f0/mods/usage-meter) | MIT | `5cef0d32daad002b7936920e47a317fd2fd066f0` |
 | `agent-radar` | Shows one live line above the prompt per running subagent or background shell. `/radar` shows the details. | `bootstrap.sh` | [hamzafer/claude-code-mods](https://github.com/hamzafer/claude-code-mods/tree/5cef0d32daad002b7936920e47a317fd2fd066f0/mods/agent-radar) | MIT | `5cef0d32daad002b7936920e47a317fd2fd066f0` |
-| `blast-radius` | Holds a risky shell command and shows what it would change, with Proceed and Cancel buttons. | Optional, by name | [anthropics/claude-code-playground](https://github.com/anthropics/claude-code-playground/tree/569c5283d9a0a7ee7938df85bb32e4f48cbb8c86/claude-code/mods/blast-radius) | Apache-2.0 | `569c5283d9a0a7ee7938df85bb32e4f48cbb8c86` |
+| `blast-radius` | Holds a risky shell command and shows what it would change, with Proceed and Cancel buttons. Your own `preCheck` command can clear the ones you already trust. | Optional, by name | This repository, changed from [anthropics/claude-code-playground](https://github.com/anthropics/claude-code-playground/tree/569c5283d9a0a7ee7938df85bb32e4f48cbb8c86/claude-code/mods/blast-radius) | Apache-2.0 | `569c5283d9a0a7ee7938df85bb32e4f48cbb8c86` |
 | `deploy-guard` | Holds a `git push` for your yes while a job is running. You say what counts as running. | Optional, by name | This repository | MIT | Not applicable |
 | `voice-fix` | Swaps misheard words in a prompt using your own glossary. No model call. | Optional, by name | This repository | MIT | Not applicable |
 | `reflect` | Offers to save a correction such as "never do X" as a permanent rule, once you press Save. No model call. | Optional, by name | This repository | MIT | Not applicable |
@@ -108,6 +108,8 @@ Run it again at any time: each step checks before it changes anything.
 
 Third-party mods are fetched from their own repositories at the reviewed commit. None of their code is kept here, and none of it changes until the pinned SHA in `marketplace.json` changes. Mods are not sandboxed, so read a new commit before you pin it.
 
+`blast-radius` is the one exception. It needed a setting the upstream mod does not have, so `plugins/blast-radius` holds a copy taken at the reviewed commit, with that one addition. [NOTICE.md](plugins/blast-radius/NOTICE.md) lists what was changed, and the folder keeps the upstream Apache-2.0 licence. It no longer follows upstream: to take an upstream fix, copy it in by hand and update the SHA in the table and in NOTICE.md.
+
 **`agent-radar` limit:** it shows the last line of a background shell's output above the prompt, so a command that prints a secret shows it on screen.
 
 **`blast-radius` limits:**
@@ -117,6 +119,20 @@ Third-party mods are fetched from their own repositories at the reviewed commit.
 - **It runs project code for migrations.** It runs the project's own migration status command before you answer, which loads your project's code.
 
 It adds a check and removes none: after Proceed, the normal permission prompt still applies.
+
+**`preCheck`, optional:** a shell command of your own that can clear a risky command before it is held. Set it on the install screen or in `/config`. It stays on that computer, never in this repository.
+
+- It runs as `<preCheck> <kind> <command>` in the session's folder. `<kind>` is one of `rm`, `git-reset`, `git-clean`, `git-push-force`, `git-checkout` or `migrate`. `<command>` is the whole command line as one argument.
+- If it exits 0 and prints exactly `approve`, the command runs with no panel, and a toast says so. The normal permission prompt still applies.
+- Any other output, a failing exit, an error or no answer within 8 seconds holds the command as usual. With no `preCheck` set, every risky command is held.
+- A cleared command does not wait under `claude -p`.
+- It is your command, so it decides what is safe. A check that prints `approve` for everything turns the mod off.
+
+```bash
+#!/bin/sh
+# Example: clear only an rm of one named scratch folder.
+[ "$1" = rm ] && [ "$2" = "rm -rf /tmp/my-scratch" ] && echo approve
+```
 
 ## deploy-guard
 

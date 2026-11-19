@@ -36,13 +36,8 @@
     },
     {
       "name": "blast-radius",
-      "source": {
-        "source": "git-subdir",
-        "url": "https://github.com/anthropics/claude-code-playground.git",
-        "path": "claude-code/mods/blast-radius",
-        "sha": "569c5283d9a0a7ee7938df85bb32e4f48cbb8c86"
-      },
-      "description": "Holds a risky shell command and shows what it would change, with Proceed and Cancel buttons."
+      "source": "./plugins/blast-radius",
+      "description": "Holds a risky shell command and shows what it would change, with Proceed and Cancel buttons. Your own preCheck command can clear the ones you already trust."
     },
     {
       "name": "deploy-guard",
